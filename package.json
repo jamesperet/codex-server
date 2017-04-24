@@ -1,0 +1,19 @@
+{
+  "name": "codex-server",
+  "version": "0.0.1",
+  "description": "A node file server with super powers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "James Peret",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2",
+    "markdown": "^0.5.0",
+    "markdown-it": "^8.3.1",
+    "markdown-it-math": "^4.0.1",
+    "markdown-it-mathjax": "^2.0.0",
+    "marked": "^0.3.6"
+  }
+}
