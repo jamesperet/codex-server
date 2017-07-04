@@ -50,6 +50,44 @@ var getPath = function(req){
   return path;
 }
 
+var getIndexFilePath = function(path, req, res){
+  if(req.params['file'] != undefined){
+    path = path + req.params['file'] + "/";
+  }
+  console.log("Looking for index file in " + path);
+  fs.readFile(path + "index.html", 'utf8', function (err,data) {
+    if (err) {
+      fs.readFile(path + "index.md", 'utf8', function (err,data) {
+        if (err) {
+          error_404(req, res);
+        } else {
+          req.params['file'] = buildFilename(req.params['file'], "index.md");
+          get_file(req, res);
+        }
+      });
+    } else {
+      req.params['file'] = buildFilename(req.params['file'], "index.html");
+      get_file(req, res);
+    }
+  });
+}
+
+var isFile = function(filename){
+  var re = /(?:\.([^.]+))?$/;
+  var ext = re.exec(filename)[1];
+  if(ext != undefined){
+    return true;
+  }
+  return false;
+}
+
+var buildFilename = function(path, filename){
+  if(path == undefined){
+    return filename;
+  }
+  return path + "/" + filename
+}
+
 var get_file = function(req, res){
 
   var path = getPath(req);
@@ -58,7 +96,7 @@ var get_file = function(req, res){
   var extension;
 
   // Load file or look for index?
-  if(req.params['file'] != undefined){
+  if(isFile(req.params['file'])){
     // Set filetype
     path = path + req.params['file'];
     parts = req.params['file'].split(".");
@@ -71,6 +109,8 @@ var get_file = function(req, res){
     }
   } else {
     // return index file if it exists
+    path = getIndexFilePath(path, req, res)
+    return;
   }
   // Action for each filetype
   if(file_type == "markdown"){
@@ -108,7 +148,7 @@ var write_file = function(req, res){
   var path = getPath(req);
   var save_data;
   // Write file
-  if(req.params['file'] != undefined){
+  if(isFile(req.params['file'])){
     path = path + req.params['file'];
     if(path == ""){
       console.log("Error: path not specified")
@@ -132,6 +172,10 @@ var write_file = function(req, res){
       }
     });
   }
+}
+
+var error_404 = function(req, res){
+  res.render('error-404', extra_data());
 }
 
 var markdown_parser = function(data){
@@ -164,6 +208,7 @@ var extra_data = function(){
 }
 
 var url_paths = [
+  '/',
   '/:file',
   '/:folder_1/:file',
   '/:folder_2/:folder_1/:file',
