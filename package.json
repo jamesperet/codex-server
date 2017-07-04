@@ -1,5 +1,5 @@
 {
-  "name": "codex-server",
+  "name": "@jamesperet/codex-server",
   "version": "0.0.2",
   "description": "A node file server with super powers.",
   "main": "index.js",
