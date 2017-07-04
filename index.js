@@ -6,11 +6,14 @@ var express = require('express')
 var app = express()
 var path = require('path');
 var fs = require('fs');
+var bodyParser = require('body-parser');
+var _ = require('lodash');
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
 app.use(express.static('public'))
+app.use(bodyParser.json());
 
 var getPath = function(req){
   var path = "";
@@ -71,13 +74,52 @@ var get_file = function(req, res){
     fs.readFile(path, 'utf8', function (err,data) {
       if (err) {
         return console.log(err);
+      } else {
+        console.log("Rendered: " + path)
+        res.render('index', { body: markdown_parser(data) });
       }
-      res.render('index', { body: markdown_parser(data) });
     });
   } else {
-    res.sendFile( process.cwd() + "/" + path)
+    res.sendFile( process.cwd() + "/" + path, function (err) {
+      if (err) {
+        console.log("Error: " + path + " - file not found");
+        res.status(err.status).end();
+      }
+      else {
+        console.log('Sent:', path);
+      }
+    });
   }
+}
 
+var write_file = function(req, res){
+  var path = getPath(req);
+  var save_data;
+  // Write file
+  if(req.params['file'] != undefined){
+    path = path + req.params['file'];
+    if(path == ""){
+      console.log("Error: path not specified")
+      res.status(400).end();
+      return;
+    }
+    if (req.body.file != undefined) {
+      save_data = req.body.file
+    }
+    else if(req.body.data != undefined){
+      save_data = JSON.stringify(req.body.data)
+    }
+    fs.writeFile(path, save_data, function(err) {
+      if(err) {
+          console.log("Error: " + path + " - file could not be saved")
+          console.log(err);
+          res.status(err.status).end();
+      } else {
+        console.log("Saved: " + path);
+        res.status(200).end();
+      }
+    });
+  }
 }
 
 var markdown_parser = function(data){
@@ -111,6 +153,12 @@ var url_paths = [
 for (var i = 0; i < url_paths.length; i++) {
   app.get(url_paths[i], function (req, res) {
     get_file(req, res);
+  })
+}
+
+for (var i = 0; i < url_paths.length; i++) {
+  app.post(url_paths[i], function (req, res) {
+    write_file(req, res);
   })
 }
 
