@@ -1,6 +1,6 @@
 {
   "name": "@jamesperet/codex-server",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A node file server with super powers.",
   "main": "index.js",
   "scripts": {

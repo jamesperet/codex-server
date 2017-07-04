@@ -1,0 +1,127 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/Cellar/node/7.5.0/bin/node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'publish' ]
+2 info using npm@4.1.2
+3 info using node@v7.5.0
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   escapedName: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: '/Users/james/dev/codex-server',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory /Users/james/.npm/@jamesperet/codex-server/0.0.3/package.tgz not in flight; packing
+9 verbose correctMkdir /Users/james/.npm correctMkdir not in flight; initializing
+10 info lifecycle @jamesperet/codex-server@0.0.3~prepublish: @jamesperet/codex-server@0.0.3
+11 silly lifecycle @jamesperet/codex-server@0.0.3~prepublish: no script for prepublish, continuing
+12 info lifecycle @jamesperet/codex-server@0.0.3~prepare: @jamesperet/codex-server@0.0.3
+13 silly lifecycle @jamesperet/codex-server@0.0.3~prepare: no script for prepare, continuing
+14 verbose tar pack [ '/Users/james/.npm/@jamesperet/codex-server/0.0.3/package.tgz',
+14 verbose tar pack   '/Users/james/dev/codex-server' ]
+15 verbose tarball /Users/james/.npm/@jamesperet/codex-server/0.0.3/package.tgz
+16 verbose folder /Users/james/dev/codex-server
+17 verbose addLocalTarball adding from inside cache /Users/james/.npm/@jamesperet/codex-server/0.0.3/package.tgz
+18 verbose correctMkdir /Users/james/.npm correctMkdir not in flight; initializing
+19 silly cache afterAdd @jamesperet/codex-server@0.0.3
+20 verbose afterAdd /Users/james/.npm/@jamesperet/codex-server/0.0.3/package/package.json not in flight; writing
+21 verbose correctMkdir /Users/james/.npm correctMkdir not in flight; initializing
+22 verbose afterAdd /Users/james/.npm/@jamesperet/codex-server/0.0.3/package/package.json written
+23 silly publish { name: '@jamesperet/codex-server',
+23 silly publish   version: '0.0.3',
+23 silly publish   description: 'A node file server with super powers.',
+23 silly publish   main: 'index.js',
+23 silly publish   scripts: { test: 'echo "Error: no test specified" && exit 1' },
+23 silly publish   repository:
+23 silly publish    { type: 'git',
+23 silly publish      url: 'git+https://github.com/jamesperet/codex-server.git' },
+23 silly publish   author: { name: 'James Peret' },
+23 silly publish   license: 'ISC',
+23 silly publish   bin: { codex: './index.js' },
+23 silly publish   dependencies:
+23 silly publish    { ascii2mathml: '^0.5.4',
+23 silly publish      'body-parser': '^1.17.2',
+23 silly publish      ejs: '^2.5.6',
+23 silly publish      express: '^4.15.2',
+23 silly publish      lodash: '^4.17.4',
+23 silly publish      markdown: '^0.5.0',
+23 silly publish      'markdown-it': '^8.3.1',
+23 silly publish      'markdown-it-highlightjs': '^3.0.0',
+23 silly publish      'markdown-it-math': '^4.0.1',
+23 silly publish      'markdown-it-mathjax': '^2.0.0',
+23 silly publish      marked: '^0.3.6',
+23 silly publish      mathjax: '^2.7.1' },
+23 silly publish   readme: '# Codex Server\n',
+23 silly publish   readmeFilename: 'readme.md',
+23 silly publish   gitHead: 'f5d9ba7212546d1bb2050ce116a770a035a595fd',
+23 silly publish   bugs: { url: 'https://github.com/jamesperet/codex-server/issues' },
+23 silly publish   homepage: 'https://github.com/jamesperet/codex-server#readme',
+23 silly publish   _id: '@jamesperet/codex-server@0.0.3',
+23 silly publish   _shasum: '9236619733512f40b492c27458a916d9e341256d',
+23 silly publish   _from: '.' }
+24 info lifecycle @jamesperet/codex-server@0.0.3~prepublishOnly: @jamesperet/codex-server@0.0.3
+25 silly lifecycle @jamesperet/codex-server@0.0.3~prepublishOnly: no script for prepublishOnly, continuing
+26 verbose getPublishConfig undefined
+27 silly mapToRegistry name @jamesperet/codex-server
+28 silly mapToRegistry scope (from package name) @jamesperet
+29 verbose mapToRegistry no registry URL found in name for scope @jamesperet
+30 silly mapToRegistry using default registry
+31 silly mapToRegistry registry https://registry.npmjs.org/
+32 silly mapToRegistry data Result {
+32 silly mapToRegistry   raw: '@jamesperet/codex-server',
+32 silly mapToRegistry   scope: '@jamesperet',
+32 silly mapToRegistry   escapedName: '@jamesperet%2fcodex-server',
+32 silly mapToRegistry   name: '@jamesperet/codex-server',
+32 silly mapToRegistry   rawSpec: '',
+32 silly mapToRegistry   spec: 'latest',
+32 silly mapToRegistry   type: 'tag' }
+33 silly mapToRegistry uri https://registry.npmjs.org/@jamesperet%2fcodex-server
+34 verbose publish registryBase https://registry.npmjs.org/
+35 silly publish uploading /Users/james/.npm/@jamesperet/codex-server/0.0.3/package.tgz
+36 verbose request uri https://registry.npmjs.org/@jamesperet%2fcodex-server
+37 verbose request sending authorization for write operation
+38 info attempt registry request try #1 at 2:43:12 AM
+39 verbose request using bearer token for auth
+40 verbose request id 92c0a8cff47e2c6d
+41 http request PUT https://registry.npmjs.org/@jamesperet%2fcodex-server
+42 http 403 https://registry.npmjs.org/@jamesperet%2fcodex-server
+43 verbose headers { 'content-type': 'application/json',
+43 verbose headers   'cache-control': 'max-age=0',
+43 verbose headers   'content-length': '95',
+43 verbose headers   'accept-ranges': 'bytes',
+43 verbose headers   date: 'Tue, 04 Jul 2017 05:43:15 GMT',
+43 verbose headers   via: '1.1 varnish',
+43 verbose headers   connection: 'keep-alive',
+43 verbose headers   'x-served-by': 'cache-yyz8328-YYZ',
+43 verbose headers   'x-cache': 'MISS',
+43 verbose headers   'x-cache-hits': '0',
+43 verbose headers   'x-timer': 'S1499146995.347352,VS0,VE391' }
+44 verbose request invalidating /Users/james/.npm/registry.npmjs.org/_40jamesperet_252fcodex-server on PUT
+45 error publish Failed PUT 403
+46 verbose stack Error: "You cannot publish over the previously published version 0.0.3." : @jamesperet/codex-server
+46 verbose stack     at makeError (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:304:12)
+46 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:292:14)
+46 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:212:14)
+46 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:186:22)
+46 verbose stack     at emitTwo (events.js:106:13)
+46 verbose stack     at Request.emit (events.js:192:7)
+46 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1081:10)
+46 verbose stack     at emitOne (events.js:96:13)
+46 verbose stack     at Request.emit (events.js:189:7)
+46 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1001:12)
+47 verbose statusCode 403
+48 verbose pkgid @jamesperet/codex-server
+49 verbose cwd /Users/james/dev/codex-server
+50 error Darwin 16.1.0
+51 error argv "/usr/local/Cellar/node/7.5.0/bin/node" "/usr/local/bin/npm" "publish"
+52 error node v7.5.0
+53 error npm  v4.1.2
+54 error code E403
+55 error "You cannot publish over the previously published version 0.0.3." : @jamesperet/codex-server
+56 error If you need help, you may report this error at:
+56 error     <https://github.com/npm/npm/issues>
+57 verbose exit [ 1, true ]
