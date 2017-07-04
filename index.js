@@ -66,6 +66,9 @@ var get_file = function(req, res){
     if(extension == "md"){
       file_type = "markdown"
     }
+    else if(extension == "html"){
+      file_type = "html"
+    }
   } else {
     // return index file if it exists
   }
@@ -76,7 +79,16 @@ var get_file = function(req, res){
         return console.log(err);
       } else {
         console.log("Rendered: " + path)
-        res.render('index', { body: markdown_parser(data) });
+        res.render('index', build_data(data));
+      }
+    });
+  } else if(file_type == "html"){
+    fs.readFile(path, 'utf8', function (err,data) {
+      if (err) {
+        return console.log(err);
+      } else {
+        console.log("Rendered: " + path)
+        res.render(process.cwd() + "/" + path, extra_data());
       }
     });
   } else {
@@ -134,6 +146,21 @@ var markdown_parser = function(data){
       blockClose: '\\]'
     }).use(require('markdown-it-highlightjs'), {auto: true, code: false})
   return md.render(data)
+}
+
+var build_data = function(data){
+  var obj = extra_data();
+  obj.body = markdown_parser(data);
+  return obj;
+}
+
+var extra_data = function(){
+  var time = new Date();
+  var date = time.getFullYear();
+  var obj = {
+    date: date
+  }
+  return obj;
 }
 
 var url_paths = [
