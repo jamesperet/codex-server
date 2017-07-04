@@ -12,15 +12,8 @@ app.set('view engine', 'html');
 //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
 app.use(express.static('public'))
 
-
-
-var get_file = function(req, res){
-
+var getPath = function(req){
   var path = "";
-  var file_type = "";
-  var parts;
-  var extension;
-
   if(req.params['folder_10'] != undefined){
     path = path + req.params['folder_10'] + "/"
   }
@@ -51,6 +44,15 @@ var get_file = function(req, res){
   if(req.params['folder_1'] != undefined){
     path = path + req.params['folder_1'] + "/"
   }
+}
+
+var get_file = function(req, res){
+
+  var path = getPath(req);
+  var file_type = "";
+  var parts;
+  var extension;
+
   // Load file or look for index?
   if(req.params['file'] != undefined){
     // Set filetype
@@ -78,79 +80,39 @@ var get_file = function(req, res){
 }
 
 var markdown_parser = function(data){
-  //var markdown = require( "markdown" ).markdown;
-  // var marked = require('marked');
-  // marked.setOptions({
-  //   renderer: new marked.Renderer(),
-  //   gfm: true,
-  //   tables: true,
-  //   breaks: true,
-  //   pedantic: true,
-  //   sanitize: false,
-  //   smartLists: true,
-  //   smartypants: true
-  // });
-  //return markdown.toHTML(data)
-  //return marked(data)
-  // var md = require('markdown-it')()
-  //             .use(require('markdown-it-mathjax')());
-
   var md = require('markdown-it')({
       html: true,
       linkify: true,
       typographer: true
     }).use(require('markdown-it-math'), {
-      inlineOpen: '\\(',
-      inlineClose: '\\)',
-      blockOpen: '\\[',
-      blockClose: '\\]'
+      inlineOpen: '$$',
+      inlineClose: '$$',
+      blockOpen: '$$',
+      blockClose: '$$'
     }).use(require('markdown-it-highlightjs'), {auto: true, code: false})
   return md.render(data)
 }
 
-app.get('/:folder_10/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
+var url_paths = [
+  '/:file',
+  '/:folder_1/:file',
+  '/:folder_2/:folder_1/:file',
+  '/:folder_3/:folder_2/:folder_1/:file',
+  '/:folder_4/:folder_3/:folder_2/:folder_1/:file',
+  '/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+  '/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+  '/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+  '/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+  '/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+  '/:folder_10/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+]
 
-app.get('/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
+for (var i = 0; i < url_paths.length; i++) {
+  app.get(url_paths[i], function (req, res) {
+    get_file(req, res);
+  })
+}
 
-app.get('/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_4/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_3/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_2/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:folder_1/:file', function (req, res) {
-  get_file(req, res);
-})
-
-app.get('/:file', function (req, res) {
-  get_file(req, res);
-})
 
 app.listen(3000, function () {
   console.log('Codex Server – listening on port 3000')
