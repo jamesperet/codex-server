@@ -16,6 +16,7 @@
     "codex": "./index.js"
   },
   "dependencies": {
+    "ascii2mathml": "^0.5.4",
     "ejs": "^2.5.6",
     "express": "^4.15.2",
     "markdown": "^0.5.0",

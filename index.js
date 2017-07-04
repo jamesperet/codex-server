@@ -44,6 +44,7 @@ var getPath = function(req){
   if(req.params['folder_1'] != undefined){
     path = path + req.params['folder_1'] + "/"
   }
+  return path;
 }
 
 var get_file = function(req, res){
@@ -85,10 +86,10 @@ var markdown_parser = function(data){
       linkify: true,
       typographer: true
     }).use(require('markdown-it-math'), {
-      inlineOpen: '$$',
-      inlineClose: '$$',
-      blockOpen: '$$',
-      blockClose: '$$'
+      inlineOpen: '\\(',
+      inlineClose: '\\)',
+      blockOpen: '\\[',
+      blockClose: '\\]'
     }).use(require('markdown-it-highlightjs'), {auto: true, code: false})
   return md.render(data)
 }
@@ -99,11 +100,11 @@ var url_paths = [
   '/:folder_2/:folder_1/:file',
   '/:folder_3/:folder_2/:folder_1/:file',
   '/:folder_4/:folder_3/:folder_2/:folder_1/:file',
-  '/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
-  '/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
-  '/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
-  '/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
-  '/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
+  '/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file',
+  '/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file',
+  '/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file',
+  '/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file',
+  '/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file',
   '/:folder_10/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
 ]
 
