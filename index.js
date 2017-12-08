@@ -88,6 +88,24 @@ var buildFilename = function(path, filename){
   return path + "/" + filename
 }
 
+var list_folder = function(req, res){
+  var path = getPath(req);
+  var file_type = "";
+  var parts;
+  var extension;
+  var folder_content = [];
+  // Path is file or folder
+  if(!isFile(req.params['file'])){
+    path = path + req.params['file'];
+  }
+  fs.readdir(path, function(err, files) {
+    files.forEach(function() {
+      folder_content.push(file);
+    });
+    res.json({ files: folder_content });
+  })
+}
+
 var get_file = function(req, res){
 
   var path = getPath(req);
@@ -222,14 +240,28 @@ var url_paths = [
   '/:folder_10/:folder_9/:folder_8/:folder_7/:folder_6/:folder_5/:folder_4/:folder_3/:folder_2/:folder_1/:file'
 ]
 
+// API get files in folder (?list=true)
+for (var i = 0; i < url_paths.length; i++) {
+    app.get(url_paths[i], function (req, res) {
+      if(req.params.list == true){
+        console.log("Listing folder: " + url_paths[i]);
+        list_folder(req, res);
+      }
+  });
+}
+
+// Get file
 for (var i = 0; i < url_paths.length; i++) {
   app.get(url_paths[i], function (req, res) {
+    console.log("Sending File: " + url_paths[i]);
     get_file(req, res);
   })
 }
 
+// Write file content
 for (var i = 0; i < url_paths.length; i++) {
   app.post(url_paths[i], function (req, res) {
+    console.log("Writing file: " + url_paths[i]);
     write_file(req, res);
   })
 }
