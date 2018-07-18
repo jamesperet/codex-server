@@ -147,8 +147,16 @@ var get_file = function(req, res){
       if (err) {
         return console.log(err);
       } else {
-        console.log("Rendered: " + path)
-        res.render('index', build_data(data));
+        console.log("Sending: " + path)
+        if(req.params['view'] == '' || req.params['view'] == 'render'){
+          res.render('index', build_data(data));
+        }
+        if(req.params['view'] == 'raw'){
+          res.send(data);
+        }
+        if(req.params['view'] == 'content'){
+          res.send(build_data(data));
+        }
       }
     });
   } else if(file_type == "html"){
@@ -156,7 +164,7 @@ var get_file = function(req, res){
       if (err) {
         return console.log(err);
       } else {
-        console.log("Rendered: " + path)
+        console.log("Sending: " + path)
         res.render(process.cwd() + "/" + path, extra_data());
       }
     });
