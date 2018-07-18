@@ -148,14 +148,14 @@ var get_file = function(req, res){
         return console.log(err);
       } else {
         console.log("Sending: " + path)
-        if(req.params['view'] == '' || req.params['view'] == 'render'){
-          res.render('index', build_data(data));
-        }
         if(req.params['view'] == 'raw'){
           res.send(data);
         }
-        if(req.params['view'] == 'content'){
+        else if(req.params['view'] == 'content'){
           res.send(build_data(data));
+        }
+        else {
+          res.render('index', build_data(data));
         }
       }
     });
