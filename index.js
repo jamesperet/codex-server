@@ -8,12 +8,14 @@ var path = require('path');
 var fs = require('fs');
 var bodyParser = require('body-parser');
 var _ = require('lodash');
+var cors = require('cors')
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
 app.use(express.static('public'))
 app.use(bodyParser.json());
+app.use(cors());
 
 var getPath = function(req){
   var path = "";
