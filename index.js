@@ -147,15 +147,17 @@ var get_file = function(req, res){
       if (err) {
         return console.log(err);
       } else {
-        console.log("Sending: " + path)
-        if(req.params['view'] == 'raw'){
+        if(req.query['view'] == 'raw'){
           res.send(data);
+          console.log("Sent raw content: " + path)
         }
-        else if(req.params['view'] == 'content'){
+        else if(req.query['view'] == 'content'){
           res.send(build_data(data));
+          console.log("Sent content: " + path)
         }
         else {
           res.render('index', build_data(data));
+          console.log("Sent rendered page: " + path)
         }
       }
     });
