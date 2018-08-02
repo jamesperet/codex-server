@@ -227,7 +227,8 @@ var markdown_parser = function(data){
       inlineClose: '\\)',
       blockOpen: '\\[',
       blockClose: '\\]'
-    })//.use(require('markdown-it-highlightjs'), {auto: true, code: false})
+    }).use(require('markdown-it-mermaid'))
+    //.use(require('markdown-it-highlightjs'), {auto: true, code: false})
   return md.render(data)
 }
 

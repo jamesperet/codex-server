@@ -1,6 +1,6 @@
 {
   "name": "@jamesperet/codex-server",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A node file server with super powers.",
   "main": "index.js",
   "scripts": {
@@ -27,6 +27,7 @@
     "markdown-it-highlightjs": "^3.0.0",
     "markdown-it-math": "^4.0.1",
     "markdown-it-mathjax": "^2.0.0",
+    "markdown-it-mermaid": "^0.2.5",
     "marked": "^0.3.6",
     "mathjax": "^2.7.1"
   }
