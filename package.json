@@ -21,6 +21,7 @@
     "cheerio": "^1.0.0-rc.2",
     "cors": "^2.8.4",
     "ejs": "^2.5.6",
+    "elasticlunr": "^0.9.5",
     "express": "^4.15.2",
     "lodash": "^4.17.4",
     "markdown": "^0.5.0",
@@ -31,7 +32,6 @@
     "markdown-it-mermaid": "^0.2.5",
     "marked": "^0.3.6",
     "mathjax": "^2.7.1",
-    "search-index": "^0.15.0",
     "stat-mode": "^0.2.2",
     "vorpal": "^1.12.0",
     "vorpal-as-default": "0.0.2"

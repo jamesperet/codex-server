@@ -10,77 +10,46 @@ var Mode = require('stat-mode');
 var fs = require('fs');
 var path = require('path');
 const cheerio = require('cheerio');
-var SearchIndex = require('search-index');
+var elasticlunr = require('elasticlunr');
+
+var index = elasticlunr(function () {
+    this.addField('title')
+    this.addField('path')
+    this.addField('body')
+});
 
 var folder_content = [];
-var index;
 var cli;
 
-var options = {
-  batchSize: 100000,
-  fieldedSearch: true,
-  fieldOptions: {},
-  preserveCase: false,
-  storeable: true,
-  searchable: true,
-  indexPath: '.codex-data/si',
-  logLevel: 'error',
-  nGramLength: 1,
-  nGramSeparator: ' ',
-  separator: /[' .,\-|(\n)]+/,
-  stopwords: require('stopword').en,
-}
-
 module.exports.start = function(new_cli, app){
-  try {
-    cli = new_cli;
-    cli.log("> searching for files...")
-    timer.start();
-    SearchIndex(options, function(err, newIndex) {
-      index = newIndex;
-      var data = createIndex();
-      try {
-        index.concurrentAdd({}, data, function(err) {
-          cli.log("> indexing done! (" + timer.end() + " seconds)");
-          startServer(cli, app)
-        })
-      } catch (err){
-        console.log(err);
-      }
-    });
-  } catch(err){
-    console.log(err);
+  cli = new_cli;
+  cli.log("> searching for files...")
+  timer.start();
+  var data = createIndex();
+  for (var i = 0; i < data.length; i++) {
+    index.addDoc(data[i]);
   }
-
+  cli.log("> indexing done! (" + timer.end() + " seconds)");
+  startServer(cli, app)
 }
 
 module.exports.query = function(req, res){
   var results = [];
-  var query = req.query.query.split(" ");
-  console.log(query);
-  index.search([{
-    AND: {'*': query}
-  }])
-  .on('data', function(data){
-    // var new_result = true;
-    // for (var i = 0; i < results.length; i++) {
-    //   if(data.document.path == results[i].document.path){
-    //     new_result = false;
-    //   }
-    // }
-    // if(new_result){
-    //     results.push(data)
-    // }
-    results.push(data)
-    console.log(data.document.path);
-  }).on('end', function () {
-    cli.log('> searching for \'' + req.query.query + "\' and found " + results.length + ' results');
-    try {
-      res.json({ results : results });
-    } catch (err) {
-      console.log(err);
-    }
-  });
+  var query = req.query.query;
+  cli.log(query);
+  index.search(query)
+    .map(({ ref, score }) => {
+      // Get doc by ref
+      const doc = index.documentStore.getDoc(ref);
+      const obj = {id: doc.id, title: doc.title, path: doc.path, body: doc.body};
+      results.push(obj);
+    });
+  cli.log('> searched for \'' + req.query.query + "\' and found " + results.length + ' results');
+  try {
+    res.json({ results : results });
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 var startServer = function(cli, app){
@@ -93,6 +62,7 @@ var startServer = function(cli, app){
 var createIndex = function(){
   var indexData = [];
   var indexed = 0;
+  var counter = 1;
 
   readDir("./");
   while(folder_content.length > 0 && indexed < 100000){
@@ -122,6 +92,8 @@ var createIndex = function(){
           }
           if(file != undefined){
             var data = {}
+            data.id = counter;
+            counter += 1;
             data.path = item.replace('.//','/');
             if(extension == "md"){
                var render = markdown.parse(file);
