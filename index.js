@@ -19,7 +19,7 @@ program.command('start')
   .action(function(args, callback)  {
     try {
       server.start(this);
-      callback();
+      // no callback() is needed so the server stays alive;
     } catch (err) {
       this.log("error starting server");
       program.exit();
