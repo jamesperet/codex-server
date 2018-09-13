@@ -20,8 +20,16 @@ var url_paths = [
 
 module.exports.start = function(cli, app){
 
+  app.get('/api/search', function (req, res) {
+    search.query(req, res, "api-search");
+  });
+
+  app.get('/api/keywords', function (req, res) {
+    search.query(req, res, "api-keywords");
+  });
+
   app.get('/search', function (req, res) {
-    search.query(req, res);
+    search.query(req, res, "search");
   });
 
   // Get file

@@ -12,5 +12,11 @@ module.exports.end = function() {
 
   // get seconds
   var seconds = Math.round(timeDiff);
-  return seconds;
+  var result;
+  if(seconds > 0 ){
+    result = seconds + " seconds"
+  } else {
+    result = (timeDiff * 1000) + " miliseconds"
+  }
+  return result;
 }

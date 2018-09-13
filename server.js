@@ -65,7 +65,7 @@ var getIndexFilePath = function(path, req, res){
   if(req.params['file'] != undefined){
     path = path + req.params['file'] + "/";
   }
-  cli.log("Looking for index file in " + path);
+  cli.log("> Looking for index file in " + path);
   fs.readFile(path + "index.html", 'utf8', function (err,data) {
     if (err) {
       fs.readFile(path + "index.md", 'utf8', function (err,data) {
@@ -158,15 +158,15 @@ module.exports.get_file = function(req, res){
       } else {
         if(req.query['view'] == 'raw'){
           res.send(data);
-          cli.log("Sent raw content: " + path)
+          cli.log("> Sent raw content: " + path)
         }
         else if(req.query['view'] == 'content'){
           res.send(build_data(data));
-          cli.log("Sent content: " + path)
+          cli.log("> Sent content: " + path)
         }
         else {
           res.render('index', build_data(data));
-          cli.log("Sent rendered page: " + path)
+          cli.log("> Sent rendered page: " + path)
         }
       }
     });
@@ -175,14 +175,14 @@ module.exports.get_file = function(req, res){
       if (err) {
         return cli.log(err);
       } else {
-        cli.log("Sending: " + path)
+        cli.log("> Sending: " + path)
         res.render(process.cwd() + "/" + path, extra_data());
       }
     });
   } else {
     res.sendFile( process.cwd() + "/" + path, function (err) {
       if (err) {
-        cli.log("Error: " + path + " - file not found");
+        cli.log("> Error: " + path + " - file not found");
         res.status(err.status).end();
       }
       else {
@@ -199,7 +199,7 @@ module.exports.write_file = function(req, res){
   if(isFile(req.params['file'])){
     path = path + req.params['file'];
     if(path == ""){
-      cli.log("Error: path not specified")
+      cli.log("> Error: path not specified")
       res.status(400).end();
       return;
     }
@@ -211,7 +211,7 @@ module.exports.write_file = function(req, res){
     }
     fs.writeFile(path, save_data, function(err) {
       if(err) {
-          cli.log("Error: " + path + " - file could not be saved")
+          cli.log("> Error: " + path + " - file could not be saved")
           cli.log(err);
           res.status(err.status).end();
       } else {
