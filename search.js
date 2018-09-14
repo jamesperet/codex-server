@@ -23,10 +23,10 @@ var index = elasticlunr(function () {
 var folder_content = [];
 var cli;
 var data;
+var update_index = false;
 
 module.exports.start = function(new_cli, app){
   cli = new_cli;
-  var update_index = false;
 
   timer.start();
 
@@ -58,8 +58,16 @@ module.exports.start = function(new_cli, app){
     }
 
     watch('./', { recursive: true }, function(evt, path) {
-      console.log('> File changed: /%s', path);
-      updateFileIndex(path, true)
+      if (evt == 'update') {
+        // on create or modify
+        //console.log('> File changed: /%s', path);
+        updateFileIndex(path, true)
+      }
+      if (evt == 'remove') {
+        // on delete
+        //console.log('> File removed: /%s', path);
+        removeFileIndex(path, undefined, true);
+      }
     });
     startServer(cli, app)
   });
@@ -202,7 +210,6 @@ var updateFileIndex = function(path, save, stat){
           data[i] = file_index;
         }
       }
-      data[file_index.id] = file_index;
       index.updateDoc(file_index);
       cli.log("> updated index " + file_index.id + " for file: " + file_index.path);
     } else {
@@ -217,6 +224,26 @@ var updateFileIndex = function(path, save, stat){
   }
 }
 
+var removeFileIndex = function(path, doc, save){
+  if("/" + path != "/.codex-data/index.json"){
+    if(doc == undefined){
+      doc = findFileIndex(path);
+    }
+    if(doc != undefined){
+      for (var i = 0; i < data.length; i++) {
+        if(data[i].id == doc.id){
+          data.splice(i, 1);
+          index.removeDoc(doc);
+          console.log("> File no longer exists, removing from index: " + path);
+          if(save) saveIndex(data);
+        }
+      }
+    } else {
+      console.log("> File was changed, but not found in index: " + path);
+    }
+  }
+}
+
 var createIndex = function(){
   var indexData = [];
   var indexed = 0;
@@ -225,28 +252,38 @@ var createIndex = function(){
   readDir("./");
   while(folder_content.length > 0 && indexed < 100000){
     var item = folder_content[0];
+    var extension;
+    var parts = item.split(".");
+    extension = parts[parts.length - 1]
+    var new_file = true;
     folder_content.shift();
+    if(update_index == true){
+      var doc = findFileIndex(item.replace('.//',''));
+      if(doc == undefined){
+        new_file = true;
+        doc = {};
+        if(allowedExtensions(extension)){
+            console.log("> New file found: " + item.replace('.//','/'))
+        }
+      } else {
+        new_file = false;
+        //console.log("   - file already exists: " + item.replace('.//','/'))
+      }
+    }
     var stat;
     try {
       stat = fs.statSync(item);
     } catch (err) {
       console.log(err);
     }
-    if(stat != undefined && "/" + file != "/.codex-data/index.json"){
+    if(stat != undefined && "/" + file != "/.codex-data/index.json" && new_file){
       var mode = new Mode(stat);
       if(mode.isDirectory()){
         readDir(item);
       }
       if(mode.isFile()){
-        var extension;
-        var parts = item.split(".");
-        extension = parts[parts.length - 1]
-        if(extension == "md" || extension == "html"
-            || extension == "gif" || extension == "png" || extension == "jpg" || extension == "txt"
-            || extension == "pdf"
-            || extension == "mov" || extension == "avi"
-            || extension == "zip"
-          ){
+
+        if(allowedExtensions(extension)){
           var file;
           try {
             file = fs.readFileSync(item, 'utf8');
@@ -266,6 +303,19 @@ var createIndex = function(){
     }
   }
   return indexData;
+}
+
+var allowedExtensions = function(extension){
+  if(extension == "md" || extension == "html"
+      || extension == "gif" || extension == "png" || extension == "jpg" || extension == "txt"
+      || extension == "pdf"
+      || extension == "mov" || extension == "avi"
+      || extension == "zip"
+    ){
+      return true;
+    } else {
+      return false;
+    }
 }
 
 var saveIndex = function(data){
@@ -384,22 +434,30 @@ var processKeywords = function(doc, query){
 
 var updateIndex = function(){
   for (var i = 0; i < data.length; i++) {
+    var path = data[i].path;
+    if(path.charAt(0) == "/") {
+      path = path.substr(1);
+    }
     var stat;
     try {
       stat = fs.statSync("./" + data[i].path);
       var new_mtime = new Date(stat.mtime)
       var old_mtime = new Date(data[i].mtime)
       if(new_mtime.toString() != old_mtime.toString()){
-        var path = data[i].path;
-        if(path.charAt(0) == "/") {
-          path = path.substr(1);
-        }
         updateFileIndex(path, false, stat)
       }
     } catch (err) {
-      if(err) console.log(err);
+      if (err.code == 'ENOENT') { // no such file or directory. File really does not exist
+        //console.log(err);
+        removeFileIndex(path, data[i], false);
+      }
     }
   }
+  var indexData = createIndex();
+  for (var i = 0; i < indexData.length; i++) {
+    data.push(indexData[i]);
+  }
+  console.log("> Added " + indexData.length + " new files to the index");
   return data;
 }
 
