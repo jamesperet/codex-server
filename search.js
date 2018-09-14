@@ -70,17 +70,20 @@ module.exports.query = function(req, res, response_type){
   var query = req.query.query;
   timer.start();
   //cli.log('> searching for \'' + query + '\'');
-  results = search(query);
-  cli.log('> searched for \'' + req.query.query + "\' and found " + results.length + " results (" + timer.end() + ")");
   try {
     switch (response_type) {
       case "api-search":
+        results = search(query, true);
+        cli.log('> searched for \'' + req.query.query + "\' and found " + results.length + " results (" + timer.end() + ")");
         res.json({ results : results, query: query });
         break;
       case "api-keywords":
+        results = search(query, false);
         res.json({ keywords : getKeywords(results, query), query: query });
         break;
       default:
+        results = search(query, true);
+        cli.log('> searched for \'' + req.query.query + "\' and found " + results.length + " results (" + timer.end() + ")");
         var time = new Date();
         var date = time.getFullYear();
         res.render('search-results', { results : results, date: date, query: query });
@@ -92,7 +95,7 @@ module.exports.query = function(req, res, response_type){
   }
 }
 
-var search = function(query){
+var search = function(query, search_snippets){
   var results = [];
   try {
     index.search(query, {
@@ -107,6 +110,7 @@ var search = function(query){
       .map(({ ref, score }) => {
         // Get doc by ref
         const doc = index.documentStore.getDoc(ref);
+
         const obj = {
           id: doc.id, title: doc.title, path: doc.path, body: doc.body,
           score: score, ctime: datetime.create(doc.ctime).format('n d, Y - H:M'),
@@ -116,6 +120,15 @@ var search = function(query){
       });
   } catch(err){
     if(err) console.log(err);
+  }
+  if(results.length > 10){
+    //results = results.slice(0, 100);
+  }
+  if(search_snippets){
+    for (var i = 0; i < results.length; i++) {
+      if(results[i].extension == 'md' || results[i].extension == 'html')
+      results[i].keywords = getKeywordSnippets(results[i].path, query);
+    }
   }
   return results;
 }
@@ -150,7 +163,7 @@ var getKeywords = function(results, query){
   for (var i = 0; i < all_keywords.length; i++) {
     occurencies += all_keywords[i].count;
   }
-  console.log("> Found " + all_keywords.length + " keywords " + occurencies + " times (" + timer.end() + ")")
+  console.log("> Found " + all_keywords.length + " keywords " + occurencies + " times for '" + query + "' (" + timer.end() + ")")
   return all_keywords;
 }
 
@@ -183,7 +196,7 @@ var updateFileIndex = function(path, save, stat){
       console.log(err);
     }
     if(doc != undefined){
-      var file_index = createFileIndex(file, path, doc.id, stat, doc.extension)
+      var file_index = createFileIndex(file, doc.path, doc.id, stat, doc.extension)
       for (var i = 0; i < data.length; i++) {
         if(data[i].id == file_index.id){
           data[i] = file_index;
@@ -388,4 +401,53 @@ var updateIndex = function(){
     }
   }
   return data;
+}
+
+// Find all occurencies of the keyword and a snippet of text for each one.
+var getKeywordSnippets = function(path, query){
+  var file = fs.readFileSync('./' + path, 'utf8');
+  var render = markdown.parse(file);
+  var html = cheerio.load(render);
+  var body_keywords = [];
+  var processHtmlBlock = function(text, tag){
+    var keywords_data = [];
+    if(text != null && text != ""){
+        //console.log(html(this).html());
+        var keywords = text.match("(\\b\\w*" + query + "\\w*\\b)", "gi");
+        if(keywords != null){
+          for (var i = 0; i < keywords.length; i++) {
+            keywords_data.push({ keyword : keywords[i], text: text, tag: tag });
+          }
+        }
+    }
+    for (var a = 0; a < keywords_data.length; a++) {
+      var exists = false;
+      for (var i = 0; i < body_keywords.length; i++) {
+        if(body_keywords[i].text == keywords_data[a].text ){
+          exists = true;
+        }
+      }
+      if(!exists) body_keywords.push(keywords_data[a]);
+    }
+  }
+  var content = html('body').contents().each(function(i, elem){
+    if(html(this).is('ul')){
+      var ul = cheerio.load(html(this).html());
+      ul('li').each(function(a, elem){
+        //console.log(ul(this).html())
+        processHtmlBlock(ul(this).html(), 'li');
+      });
+    } else if(html(this).is('p')){
+      processHtmlBlock(html(this).html(), 'p');
+    } else {
+        //processHtmlBlock(html(this).html(), html(this).get(0).tagName);
+    }
+
+    //console.log(keywords);
+    if(html(this).is('h1')){
+      //console.log(html(this).html());
+    }
+  });
+  //console.log(body_keywords);
+  return body_keywords;
 }
