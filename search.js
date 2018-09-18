@@ -13,6 +13,7 @@ const cheerio = require('cheerio');
 var elasticlunr = require('elasticlunr');
 var datetime = require("node-datetime");
 var watch = require('node-watch');
+const logUpdate = require('log-update');
 
 var index = elasticlunr(function () {
     this.addField('title')
@@ -248,9 +249,21 @@ var createIndex = function(){
   var indexData = [];
   var indexed = 0;
   var counter = 1;
-
+  var folder_count = 0;
+  var file_count = 0;
+  var log_counter = 0
+  var update_speed = 100;
+  if(update_index == true){
+    update_speed = 1000;
+  }
+  logUpdate('> searched ' + folder_count + ' folders and ' + file_count + ' files');
   readDir("./");
   while(folder_content.length > 0 && indexed < 100000){
+    log_counter += 1;
+    if(log_counter > update_speed){
+        logUpdate('> searched ' + folder_count + ' folders and ' + file_count + ' files');
+        log_counter = 0;
+    }
     var item = folder_content[0];
     var extension;
     var parts = item.split(".");
@@ -279,10 +292,11 @@ var createIndex = function(){
     if(stat != undefined && "/" + file != "/.codex-data/index.json" && new_file){
       var mode = new Mode(stat);
       if(mode.isDirectory()){
+        folder_count += 1;
         readDir(item);
       }
       if(mode.isFile()){
-
+        file_count += 1;
         if(allowedExtensions(extension)){
           var file;
           try {
@@ -302,6 +316,7 @@ var createIndex = function(){
       }
     }
   }
+  clearInterval(log_counter);
   return indexData;
 }
 
@@ -435,6 +450,7 @@ var processKeywords = function(doc, query){
 var updateIndex = function(){
   for (var i = 0; i < data.length; i++) {
     var path = data[i].path;
+    if(path == undefined) { continue; }
     if(path.charAt(0) == "/") {
       path = path.substr(1);
     }
@@ -474,7 +490,41 @@ var getKeywordSnippets = function(path, query){
         var keywords = text.match("(\\b\\w*" + query + "\\w*\\b)", "gi");
         if(keywords != null){
           for (var i = 0; i < keywords.length; i++) {
-            keywords_data.push({ keyword : keywords[i], text: text, tag: tag });
+            if(tag == 'code'){
+              var lines = ""
+              var code_counter = 0;
+              var index_filter = 0;
+              text.toString().split("\n").forEach(function(line, index, arr) {
+                if (index === arr.length - 1 && line === "") { return; }
+                if(code_counter > 3){ return; }
+                var match = line.match("(\\b\\w*" + query + "\\w*\\b)", "gi");
+                if(match != undefined && match != "" && index >= index_filter){
+                  if(index > 0 && arr.length > index + 2){
+                    if(line != ""){
+                      lines += "...\n" + arr[index - 1] + '\n' + arr[index] + '\n' + arr[index + 1] + '\n' + arr[index + 2] + "\n...\n";
+                      index += 3;
+                      index_filter = index;
+                      code_counter += 1;
+                    }
+                  } else {
+                    if(line != ""){
+                      lines += line;
+                      index_filter = index;
+                    }
+                  }
+                }
+              });
+              text = lines;
+            }
+            if(text != ""){
+              var is_new = false;
+              for (var b = 0; b < keywords_data.length; b++) {
+                if(keywords_data[b].text == text) { is_new = true; }
+              }
+              if(is_new == false){
+                  keywords_data.push({ keyword : keywords[i], text: text, tag: tag });
+              }
+            }
           }
         }
     }
@@ -496,7 +546,18 @@ var getKeywordSnippets = function(path, query){
         processHtmlBlock(ul(this).html(), 'li');
       });
     } else if(html(this).is('p')){
+      html(this).children('img').remove();
       processHtmlBlock(html(this).html(), 'p');
+    } else if(html(this).is('pre')){
+      processHtmlBlock(html(this).children('code').html(), 'code');
+    } else if(html(this).is('h2')){
+        processHtmlBlock(html(this).html(), html(this).get(0).tagName);
+    } else if(html(this).is('h3')){
+        processHtmlBlock(html(this).html(), html(this).get(0).tagName);
+    } else if(html(this).is('h4')){
+        processHtmlBlock(html(this).html(), html(this).get(0).tagName);
+    } else if(html(this).is('h5')){
+        processHtmlBlock(html(this).html(), html(this).get(0).tagName);
     } else {
         //processHtmlBlock(html(this).html(), html(this).get(0).tagName);
     }

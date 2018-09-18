@@ -24,6 +24,7 @@
     "elasticlunr": "^0.9.5",
     "express": "^4.15.2",
     "lodash": "^4.17.4",
+    "log-update": "^2.3.0",
     "markdown": "^0.5.0",
     "markdown-it": "^8.3.1",
     "markdown-it-highlightjs": "^3.0.0",
