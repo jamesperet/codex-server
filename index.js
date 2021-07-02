@@ -2,6 +2,12 @@
 
 'use strict';
 
+process.env["SUPPRESS_NO_CONFIG_WARNING"] = true;
+process.env["NODE_CONFIG_DIR"] = process.cwd() + "/.codex-data/config/";
+const config = require("config");
+if(!config.has('server-title')){
+  console.log('> No configuration file found in \"' + process.env["NODE_CONFIG_DIR"] + '\"');
+}
 
 var program = require('vorpal')();
 var asDefault = require('vorpal-as-default').default;
@@ -18,11 +24,11 @@ program.command('start')
   .description("start codex server with current dir as root folder")
   .action(function(args, callback)  {
     try {
-      server.start(this);
+      server.start(this, config);
       // no callback() is needed so the server stays alive;
     } catch (err) {
-      this.log("error starting server");
-      program.exit();
+      this.log("> Error starting server, shutting down");
+      program.exec('exit');
     }
   });
 

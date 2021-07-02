@@ -19,6 +19,7 @@
     "ascii2mathml": "^0.5.4",
     "body-parser": "^1.17.2",
     "cheerio": "^1.0.0-rc.2",
+    "config": "^3.3.6",
     "cors": "^2.8.4",
     "ejs": "^2.5.6",
     "elasticlunr": "^0.9.5",

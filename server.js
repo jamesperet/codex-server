@@ -14,9 +14,15 @@ var markdown = require('./markdown');
 var search = require('./search');
 var cli;
 
-module.exports.start = function(new_cli){
+module.exports.start = function(new_cli, config){
   cli = new_cli
-  cli.log('> Starting codex server')
+  config = config;
+  var title = config.get('server-title');
+  if(title != ""){
+    cli.log('> Starting codex server for \"' + title + '\"');
+  } else {
+    cli.log('> Starting codex server');
+  }
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
   //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
