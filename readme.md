@@ -8,7 +8,7 @@ The codex server works as web server for local files inside a directory and its 
 
 ### Configuration
 
-On the root folder of your file hierarchy, create the file ``.codex-data/config/default.json`` and add a basic configuration:
+To quickly create a new configuration file, run the command ``codex create config``. This will create the file ``.codex-data/config/default.json`` and add a basic configuration:
 
 ```json
 {
