@@ -14,6 +14,7 @@ var elasticlunr = require('elasticlunr');
 var datetime = require("node-datetime");
 var watch = require('node-watch');
 const logUpdate = require('log-update');
+var glob = require('glob');
 
 var index = elasticlunr(function () {
     this.addField('title')
@@ -23,12 +24,13 @@ var index = elasticlunr(function () {
 
 var folder_content = [];
 var cli;
+var app;
 var data;
 var update_index = false;
 
-module.exports.start = function(new_cli, app){
+module.exports.start = function(new_cli, new_app){
   cli = new_cli;
-
+  app = new_app;
   timer.start();
 
   fs.stat('./.codex-data/index.json', function(err, stat) {
@@ -37,40 +39,16 @@ module.exports.start = function(new_cli, app){
         data = JSON.parse(file).table;
         cli.log("> Loaded index file.")
         update_index = true;
+        createIndex(startServer);
     } else if(err.code == 'ENOENT') {
         // file does not exist
         cli.log("> Index doesn't exist. Creating new index.");
         cli.log("> searching for files...");
-        data = createIndex();
+        update_index = false;
+        createIndex(startServer);
     } else {
         console.log('> ERROR: ', err.code);
     }
-    if(data != undefined){
-      for (var i = 0; i < data.length; i++) {
-        index.addDoc(data[i]);
-      }
-      if(update_index){
-        data = updateIndex();
-      }
-      saveIndex(data);
-      cli.log("> indexed " + data.length + " files (" + timer.end() + ")");
-    } else {
-      cli.log("> indexing failed! (" + timer.end() + ")");
-    }
-
-    watch('./', { recursive: true }, function(evt, path) {
-      if (evt == 'update') {
-        // on create or modify
-        //console.log('> File changed: /%s', path);
-        updateFileIndex(path, true)
-      }
-      if (evt == 'remove') {
-        // on delete
-        //console.log('> File removed: /%s', path);
-        removeFileIndex(path, undefined, true);
-      }
-    });
-    startServer(cli, app)
   });
 }
 
@@ -176,7 +154,32 @@ var getKeywords = function(results, query){
   return all_keywords;
 }
 
-var startServer = function(cli, app){
+var startServer = function(){
+  if(data != undefined){
+    for (var i = 0; i < data.length; i++) {
+      index.addDoc(data[i]);
+    }
+    if(update_index){
+      updateIndex();
+    }
+    saveIndex(data);
+    cli.log("> indexed " + data.length + " files (" + timer.end() + ")");
+  } else {
+    cli.log("> indexing failed! (" + timer.end() + ")");
+  }
+
+  watch('./', { recursive: true }, function(evt, path) {
+    if (evt == 'update') {
+      // on create or modify
+      //console.log('> File changed: /%s', path);
+      updateFileIndex(path, true)
+    }
+    if (evt == 'remove') {
+      // on delete
+      //console.log('> File removed: /%s', path);
+      removeFileIndex(path, undefined, true);
+    }
+  });
   routes.start(cli, app);
   app.listen(3000, function () {
     cli.log('> listening on port 3000');
@@ -245,7 +248,104 @@ var removeFileIndex = function(path, doc, save){
   }
 }
 
-var createIndex = function(){
+var createIndex = function(callback){
+  var indexData = [];
+  var new_files = [];
+  var counter = 1;
+  var folder_count = 0;
+  var file_count = 0;
+  var log_counter = 0
+  var update_speed = 100;
+  if(update_index == true){
+    update_speed = 1000;
+  }
+  glob("**/*",{'cwd': './', 'ignore':['.DS_Store', '**/.DS_Store', ".codex-data/*", "**/*.zip"]}, function (err, files) {
+    console.log(`> Found ${files.length} files`);
+    while(files.length > 0){
+      log_counter += 1;
+      logUpdate(`> Scaning file ${log_counter} (${new_files.length} new files found)`);
+      var item = files[0];
+      var extension;
+      var parts = item.split(".");
+      extension = parts[parts.length - 1]
+      var new_file = true;
+      files.shift();
+      var doc = undefined;
+      var file_data = undefined;
+      if(update_index == true){
+        for (var i = 1; i < data.length; i++) {
+          if(data[i].path == item){
+            doc = data[i];
+            //console.log(data[i].path)
+            //console.log(item)
+          }
+        }
+        if(doc == undefined){
+          if(allowedExtensions(extension)){
+              //console.log("> New file found: " + item.replace('.//','/'))
+              new_file = true;
+          } else {
+            new_file = true; false
+          }
+        } else {
+          new_file = false;
+          //console.log("   - file already exists: " + item.replace('.//','/'))
+        }
+      } else {
+        if(allowedExtensions(extension)){
+          new_file = true;
+        } else {
+          new_file = true; false
+        }
+      }
+      if(new_file){
+        var stat;
+        try {
+          stat = fs.statSync(item);
+        } catch (err) {
+          console.log(err);
+        }
+        if(stat != undefined){
+          var mode = new Mode(stat);
+          if(mode.isDirectory()){
+            folder_count += 1;
+            readDir(item);
+          }
+          if(mode.isFile()){
+            file_count += 1;
+            if(allowedExtensions(extension)){
+              var file;
+              try {
+                file = fs.readFileSync(item, 'utf8');
+              } catch (err) {
+                console.log(err);
+              }
+              counter += 1;
+              file_data = createFileIndex(file, item, counter, stat, extension);
+            }
+          }
+        }
+      }
+      //console.log(`indexed ${indexData.length} files`);
+      if(file_data != undefined){
+        indexData.push(file_data);
+        new_files.push(file_data);
+      } else if(doc != undefined){
+        indexData.push(doc);
+      }
+    }
+    for (let a = 0; a < new_files.length; a++) {
+      console.log(`> New file found: \"${new_files[a].path}\"`);
+      
+    }
+    clearInterval(log_counter);
+    console.log(`> Added ${new_files.length} new files to the index`);
+    data = indexData;
+    callback();
+  });
+}
+
+var createIndex2 = function(){
   var indexData = [];
   var indexed = 0;
   var counter = 1;
@@ -449,6 +549,8 @@ var processKeywords = function(doc, query){
 
 var updateIndex = function(){
   for (var i = 0; i < data.length; i++) {
+    var updated_files = 0;
+    var removed_files = 0;
     var path = data[i].path;
     if(path == undefined) { continue; }
     if(path.charAt(0) == "/") {
@@ -460,21 +562,18 @@ var updateIndex = function(){
       var new_mtime = new Date(stat.mtime)
       var old_mtime = new Date(data[i].mtime)
       if(new_mtime.toString() != old_mtime.toString()){
+        updated_files += 1;
         updateFileIndex(path, false, stat)
       }
     } catch (err) {
       if (err.code == 'ENOENT') { // no such file or directory. File really does not exist
         //console.log(err);
+        removed_files += 1;
         removeFileIndex(path, data[i], false);
       }
     }
   }
-  var indexData = createIndex();
-  for (var i = 0; i < indexData.length; i++) {
-    data.push(indexData[i]);
-  }
-  console.log("> Added " + indexData.length + " new files to the index");
-  return data;
+  console.log(`> Updated ${updated_files} files and removed ${removed_files} files`);
 }
 
 // Find all occurencies of the keyword and a snippet of text for each one.
@@ -488,6 +587,7 @@ var getKeywordSnippets = function(path, query){
     if(text != null && text != ""){
         //console.log(html(this).html());
         var keywords = text.match("(\\b\\w*" + query + "\\w*\\b)", "gi");
+        text = text.replace("{{", " ").replace("}}", " ");
         if(keywords != null){
           for (var i = 0; i < keywords.length; i++) {
             if(tag == 'code'){

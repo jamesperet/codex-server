@@ -23,6 +23,7 @@
     "ejs": "^2.5.6",
     "elasticlunr": "^0.9.5",
     "express": "^4.15.2",
+    "glob": "^7.1.6",
     "lodash": "^4.17.4",
     "log-update": "^2.3.0",
     "markdown": "^0.5.0",
