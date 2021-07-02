@@ -6,6 +6,16 @@ Codex is a markdown wiki server with mathjax and syntax highlighting.
 
 The codex server works as web server for local files inside a directory and its subdirectories. Codex will render each filetype with a nice customizable webpage template.
 
+### Configuration
+
+On the root folder of your file hierarchy, create the file ``.codex-data/config/default.json`` and add a basic configuration:
+
+```json
+{
+    "server-title" : "Untitled Codex"
+}
+```
+
 ### Starting
 
 To start the server, navigate to the root folder of your file hierarchy and run the command: ```codex start``` to start the program.
