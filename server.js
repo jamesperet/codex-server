@@ -40,6 +40,10 @@ module.exports.start = function(new_cli, new_config){
   }
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
+  if(config.has('views-path')){
+    app.set('views', config.get('views-path'));
+    cli.log('> Setting views from ' + config.get('views-path'));
+  }
   //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
   app.use(express.static('public'))
   app.use(bodyParser.json());
