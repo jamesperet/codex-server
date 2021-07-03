@@ -12,16 +12,31 @@ var cors = require('cors')
 
 var markdown = require('./markdown');
 var search = require('./search');
-var cli;
+var cli, config, title, module_list, modules;
 
-module.exports.start = function(new_cli, config){
+module.exports.start = function(new_cli, new_config){
   cli = new_cli
-  config = config;
-  var title = config.get('server-title');
+  config = new_config;
+  title = config.get('server-title');
+  module_list = config.get('modules');
+  modules = [];
   if(title != ""){
     cli.log('> Starting codex server for \"' + title + '\"');
   } else {
     cli.log('> Starting codex server');
+  }
+  for (let i = 0; i < module_list.length; i++) {
+    cli.log('> Loading module ' + module_list[i].name);
+    try {
+      var Module = require(module_list[i].module);
+      var module = new Module(cli, module_list[i]);
+      module.init();
+      modules.push(module);
+    } catch (err)
+    {
+      cli.log('> Error loading module ' + module_list[i].name);
+      cli.log(err);
+    }
   }
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');

@@ -33,6 +33,7 @@ program.command('start')
         // no callback() is needed so the server stays alive;
       } catch (err) {
         this.log("> Error starting server, shutting down");
+        this.log(err);
         program.exec('exit');
       }
     }
