@@ -15,6 +15,9 @@
   "bin": {
     "codex": "./index.js"
   },
+  "engines": {
+    "node": "12.x"
+  },
   "dependencies": {
     "ascii2mathml": "^0.5.4",
     "body-parser": "^1.17.2",
