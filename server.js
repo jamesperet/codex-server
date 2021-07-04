@@ -107,11 +107,13 @@ var getIndexFilePath = function(path, req, res){
   if(req.params['file'] != undefined){
     path = path + req.params['file'] + "/";
   }
+  
   cli.log("> Looking for index file in " + path);
   fs.readFile(path + "index.html", 'utf8', function (err,data) {
     if (err) {
       fs.readFile(path + "index.md", 'utf8', function (err,data) {
         if (err) {
+          cli.log("> Error: No index file found in " + path);
           error_404(req, res);
         } else {
           req.params['file'] = buildFilename(req.params['file'], "index.md");
@@ -141,7 +143,7 @@ var buildFilename = function(path, filename){
   return path + "/" + filename
 }
 
-module.exports.list_folder = function(req, res){
+var list_folder = function(req, res){
   var path = getPath(req);
   var file_type = "";
   var parts;
@@ -168,7 +170,7 @@ module.exports.list_folder = function(req, res){
   })
 }
 
-module.exports.get_file = function(req, res){
+var get_file = function(req, res){
 
   var path = getPath(req);
   var file_type = "";
@@ -234,7 +236,7 @@ module.exports.get_file = function(req, res){
   }
 }
 
-module.exports.write_file = function(req, res){
+var write_file = function(req, res){
   var path = getPath(req);
   var save_data;
   // Write file
@@ -282,3 +284,7 @@ var extra_data = function(){
   }
   return obj;
 }
+
+module.exports.get_file = get_file;
+module.exports.list_folder = list_folder;
+module.exports.write_file = write_file;
