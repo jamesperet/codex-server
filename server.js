@@ -12,7 +12,7 @@ var cors = require('cors')
 
 var markdown = require('./markdown');
 var search = require('./search');
-var cli, config;
+var cli, config, server;
 
 class Server {
   constructor(cli, config, app){
@@ -20,6 +20,7 @@ class Server {
     this.config = config;
     this.modules = [];
     this.express = app;
+    this.auth = undefined;
   }
 
   init_modules() {
@@ -46,7 +47,7 @@ module.exports.start = function(new_cli, new_config){
   cli = new_cli
   config = new_config;
   // Start Server
-  var server = new Server(cli, config, app);
+  server = new Server(cli, config, app);
   server.title = config.get('server-title');
   if(server.title != ""){
     cli.log('> Starting codex server for \"' + server.title + '\"');
@@ -65,7 +66,7 @@ module.exports.start = function(new_cli, new_config){
   app.use(express.static('public'))
   app.use(bodyParser.json());
   app.use(cors());
-  search.start(cli, app);
+  search.start(cli, app, server);
 }
 
 var getPath = function(req){
@@ -156,7 +157,7 @@ var list_folder = function(req, res){
   if(path == "" || path == "undefined"){
     path = "./";
   }
-  cli.log("Listing folder: " + path);
+  cli.log("> Listing folder: " + path);
   fs.readdir(path, function(err, files) {
     if(files != null){
       files.forEach(function(file) {
@@ -171,7 +172,18 @@ var list_folder = function(req, res){
 }
 
 var get_file = function(req, res){
-
+  var u = undefined;
+  if(server.auth != undefined)
+  {
+    //cli.log(req.oidc.isAuthenticated() ? '> User is logged in' : '> User is logged out');
+    //cli.log(req.oidc.user);
+    u = req.oidc.user.nickname;
+  }
+  var printUser = function(u){
+    if(u == undefined) return "";
+    else return " to " + u;
+  }
+  
   var path = getPath(req);
   var file_type = "";
   var parts;
@@ -202,15 +214,15 @@ var get_file = function(req, res){
       } else {
         if(req.query['view'] == 'raw'){
           res.send(data);
-          cli.log("> Sent raw content: " + path)
+          cli.log("> Sending raw content " + path + printUser(u))
         }
         else if(req.query['view'] == 'content'){
           res.send(build_data(data));
-          cli.log("> Sent content: " + path)
+          cli.log("> Sending content " + path + printUser(u))
         }
         else {
           res.render('index', build_data(data));
-          cli.log("> Sent rendered page: " + path)
+          cli.log("> Sending rendered page " + path + printUser(u))
         }
       }
     });
@@ -219,7 +231,7 @@ var get_file = function(req, res){
       if (err) {
         return cli.log(err);
       } else {
-        cli.log("> Sending: " + path)
+        cli.log("> Sending " + path + printUser(u))
         res.render(process.cwd() + "/" + path, extra_data());
       }
     });
@@ -230,7 +242,7 @@ var get_file = function(req, res){
         res.status(err.status).end();
       }
       else {
-        cli.log('Sent:', path);
+        cli.log('> Sending ' + path + printUser(u));
       }
     });
   }
@@ -259,7 +271,7 @@ var write_file = function(req, res){
           cli.log(err);
           res.status(err.status).end();
       } else {
-        cli.log("Saved: " + path);
+        cli.log("> Saved: " + path);
         res.status(200).end();
       }
     });

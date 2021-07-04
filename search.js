@@ -25,12 +25,14 @@ var index = elasticlunr(function () {
 var folder_content = [];
 var cli;
 var app;
+var server;
 var data;
 var update_index = false;
 
-module.exports.start = function(new_cli, new_app){
+module.exports.start = function(new_cli, new_app, new_server){
   cli = new_cli;
   app = new_app;
+  server = new_server;
   timer.start();
 
   fs.stat('./.codex-data/index.json', function(err, stat) {
@@ -180,7 +182,7 @@ var startServer = function(){
       removeFileIndex(path, undefined, true);
     }
   });
-  routes.start(cli, app);
+  routes.start(server);
   app.listen(3000, function () {
     cli.log('> listening on port 3000');
   });
