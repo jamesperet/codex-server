@@ -21,6 +21,7 @@ class Server {
     this.modules = [];
     this.express = app;
     this.auth = undefined;
+    this.printUser = printUser;
   }
 
   init_modules() {
@@ -172,17 +173,7 @@ var list_folder = function(req, res){
 }
 
 var get_file = function(req, res){
-  var u = undefined;
-  if(server.auth != undefined)
-  {
-    //cli.log(req.oidc.isAuthenticated() ? '> User is logged in' : '> User is logged out');
-    //cli.log(req.oidc.user);
-    u = req.oidc.user.nickname;
-  }
-  var printUser = function(u){
-    if(u == undefined) return "";
-    else return " to " + u;
-  }
+  
   
   var path = getPath(req);
   var file_type = "";
@@ -214,15 +205,15 @@ var get_file = function(req, res){
       } else {
         if(req.query['view'] == 'raw'){
           res.send(data);
-          cli.log("> Sending raw content " + path + printUser(u))
+          cli.log("> Sending raw content " + path + printUser(req))
         }
         else if(req.query['view'] == 'content'){
           res.send(build_data(data));
-          cli.log("> Sending content " + path + printUser(u))
+          cli.log("> Sending content " + path + printUser(req))
         }
         else {
           res.render('index', build_data(data));
-          cli.log("> Sending rendered page " + path + printUser(u))
+          cli.log("> Sending rendered page " + path + printUser(req))
         }
       }
     });
@@ -231,7 +222,7 @@ var get_file = function(req, res){
       if (err) {
         return cli.log(err);
       } else {
-        cli.log("> Sending " + path + printUser(u))
+        cli.log("> Sending " + path + printUser(req))
         res.render(process.cwd() + "/" + path, extra_data());
       }
     });
@@ -242,7 +233,7 @@ var get_file = function(req, res){
         res.status(err.status).end();
       }
       else {
-        cli.log('> Sending ' + path + printUser(u));
+        cli.log('> Sending ' + path + printUser(req));
       }
     });
   }
@@ -295,6 +286,19 @@ var extra_data = function(){
     date: date
   }
   return obj;
+}
+
+var printUser = function(req)
+{
+  var u = undefined;
+  if(server.auth != undefined)
+  {
+    //cli.log(req.oidc.isAuthenticated() ? '> User is logged in' : '> User is logged out');
+    //cli.log(req.oidc.user);
+    u = req.oidc.user.nickname;
+  }
+  if(u == undefined) return "";
+    else return " to " + u;
 }
 
 module.exports.get_file = get_file;
