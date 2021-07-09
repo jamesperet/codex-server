@@ -29,12 +29,12 @@ program.command('start')
       this.log("> No configuration found. Run 'codex create config' to create a new configuration file");
     } else {
       try {
-        server.start(this, config);
+        server.start(program, config);
         // no callback() is needed so the server stays alive;
       } catch (err) {
         this.log("> Error starting server, shutting down");
         this.log(err);
-        program.exec('exit');
+        program.execSync('exit');
       }
     }
   });

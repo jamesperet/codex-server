@@ -4,7 +4,7 @@
 
 var express = require('express')
 var app = express()
-var path = require('path');
+var pathTool = require('path');
 var fs = require('fs');
 var bodyParser = require('body-parser');
 var _ = require('lodash');
@@ -60,11 +60,24 @@ module.exports.start = function(new_cli, new_config){
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
   if(config.has('views-path')){
-    app.set('views', config.get('views-path'));
-    cli.log('> Setting views from ' + config.get('views-path'));
+    var index_path = pathTool.join(config.get('views-path'), 'index.html');
+    var index_exists = fs.existsSync(index_path);
+    if(!index_exists) {
+      cli.log("> Error: index view not found: " + index_path);
+      cli.log("> Fix \'views-path\' in your configuration file to point to a valid theme views folder");
+      cli.log("> Shutting down");
+      cli.execSync("exit");
+    } else {
+      app.set('views', config.get('views-path'));
+      cli.log('> Setting views from ' + config.get('views-path'));
+    }
+  } else {
+      cli.log("> Add \'views-path\' to your configuration file ");
+      cli.log("> Shutting down");
+      cli.execSync("exit");
   }
   //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
-  app.use(express.static('public'))
+  //app.use(express.static('public'))
   app.use(bodyParser.json());
   app.use(cors());
   search.start(cli, app, server);
