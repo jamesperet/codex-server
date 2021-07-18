@@ -12,6 +12,7 @@ var cors = require('cors')
 
 var markdown = require('./markdown');
 var search = require('./search');
+var files = require('./files');
 var cli, config, server;
 
 class Server {
@@ -172,17 +173,17 @@ var list_folder = function(req, res){
     path = "./";
   }
   cli.log("> Listing folder: " + path);
-  fs.readdir(path, function(err, files) {
-    if(files != null){
-      files.forEach(function(file) {
-        folder_content.push(file);
-      });
-      res.json({ files: folder_content });
-    } else {
-      res.json({ files: [] });
-    }
-
-  })
+  res.json({ files: files.list_folder(path)});
+  // fs.readdir(path, function(err, files) {
+  //   if(files != null){
+  //     files.forEach(function(file) {
+  //       folder_content.push(file);
+  //     });
+  //     res.json({ files: folder_content });
+  //   } else {
+  //     res.json({ files: [] });
+  //   }
+  // })
 }
 
 var get_file = function(req, res){
