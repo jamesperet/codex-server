@@ -23,6 +23,8 @@ class Server {
     this.express = app;
     this.auth = undefined;
     this.printUser = printUser;
+    this.spa_mode = true;
+    this.file_structure;
   }
 
   init_modules() {
@@ -82,6 +84,7 @@ module.exports.start = function(new_cli, new_config){
   app.use(bodyParser.json());
   app.use(cors());
   search.start(cli, app, server);
+  server.file_structure = files.list_folder(process.cwd() + "/", true);
 }
 
 var getPath = function(req){
@@ -130,7 +133,11 @@ var getIndexFilePath = function(path, req, res){
       fs.readFile(path + "index.md", 'utf8', function (err,data) {
         if (err) {
           cli.log("> Error: No index file found in " + path);
-          error_404(req, res);
+          if(server.spa_mode){
+            res.sendStatus(404);
+          } else {
+            error_404(req, res);
+          }
         } else {
           req.params['file'] = buildFilename(req.params['file'], "index.md");
           get_file(req, res);
@@ -173,7 +180,7 @@ var list_folder = function(req, res){
     path = "./";
   }
   cli.log("> Listing folder: " + path);
-  res.json({ files: files.list_folder(path)});
+  res.json({ files: files.list_folder(path, false)});
   // fs.readdir(path, function(err, files) {
   //   if(files != null){
   //     files.forEach(function(file) {
