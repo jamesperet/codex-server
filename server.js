@@ -23,7 +23,7 @@ class Server {
     this.express = app;
     this.auth = undefined;
     this.printUser = printUser;
-    this.spa_mode = true;
+    this.spa_mode = false;
     this.file_structure;
   }
 
@@ -134,7 +134,9 @@ var getIndexFilePath = function(path, req, res){
         if (err) {
           cli.log("> Error: No index file found in " + path);
           if(server.spa_mode){
-            res.sendStatus(404);
+            //res.sendStatus(404);
+            res.render('index', build_data(data));
+            cli.log("> Sending index page " + printUser(req))
           } else {
             error_404(req, res);
           }
@@ -239,14 +241,19 @@ var get_file = function(req, res){
       }
     });
   } else if(file_type == "html"){
-    fs.readFile(path, 'utf8', function (err,data) {
-      if (err) {
-        return cli.log(err);
-      } else {
-        cli.log("> Sending " + path + printUser(req))
-        res.render(process.cwd() + "/" + path, extra_data());
-      }
-    });
+    if(server.spa_mode){
+      res.render('index', build_data(data));
+      cli.log("> Sending index page " + printUser(req))
+    } else {
+      fs.readFile(path, 'utf8', function (err,data) {
+        if (err) {
+          return cli.log(err);
+        } else {
+          cli.log("> Sending " + path + printUser(req))
+          res.render(process.cwd() + "/" + path, extra_data());
+        }
+      });
+    }
   } else {
     res.sendFile( process.cwd() + "/" + path, function (err) {
       if (err) {
@@ -296,7 +303,7 @@ var error_404 = function(req, res){
 
 var build_data = function(data){
   var obj = extra_data();
-  obj.body = markdown.parse(data);
+  if(data != undefined) obj.body = markdown.parse(data);
   return obj;
 }
 
