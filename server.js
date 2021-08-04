@@ -135,7 +135,7 @@ var getIndexFilePath = function(path, req, res){
           cli.log("> Error: No index file found in " + path);
           if(server.spa_mode){
             //res.sendStatus(404);
-            res.render('index', build_data(data));
+            res.render('index', build_data(undefined));
             cli.log("> Sending index page " + printUser(req))
           } else {
             error_404(req, res);
@@ -242,7 +242,7 @@ var get_file = function(req, res){
     });
   } else if(file_type == "html"){
     if(server.spa_mode){
-      res.render('index', build_data(data));
+      res.render('index', build_data(undefined));
       cli.log("> Sending index page " + printUser(req))
     } else {
       fs.readFile(path, 'utf8', function (err,data) {
@@ -270,6 +270,7 @@ var get_file = function(req, res){
 var write_file = function(req, res){
   var path = getPath(req);
   var save_data;
+  cli.log("Writing file: " + path);
   // Write file
   if(isFile(req.params['file'])){
     path = path + req.params['file'];

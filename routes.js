@@ -50,7 +50,6 @@ module.exports.start = function(server){
 
   // Write file content
   var write_action = function (req, res) {
-    cli.log("Writing file: " + url_paths[i]);
     service.write_file(req, res);
   }
   for (var i = 0; i < url_paths.length; i++) {
