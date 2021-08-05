@@ -22,7 +22,6 @@ var url_paths = [
 module.exports.start = function(server){
 
   server.express.post('/api/delete', function (req, res) {
-    
     var success = files.delete_path(process.cwd() + req.body.path);
     if(success) {
       console.log("> Deleted " + req.body.path);
@@ -31,6 +30,19 @@ module.exports.start = function(server){
     }
     else {
       console.log("> Error deleting " + req.body.path);
+      res.status(500).end();
+    }
+  });
+
+  server.express.post('/api/create_folder', function (req, res) {
+    var success = files.create_path(process.cwd() + req.body.path);
+    if(success) {
+      console.log("> Create new folder " + req.body.path);
+      server.update_file_structure();
+      res.status(200).end();
+    }
+    else {
+      console.log("> Error creating folder " + req.body.path);
       res.status(500).end();
     }
   });

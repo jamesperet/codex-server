@@ -40,5 +40,18 @@ var delete_path = function(path){
     }
 }
 
+var create_path = function(path){
+    try {
+        if (!fs.existsSync(path)){
+            fs.mkdirSync(path, { recursive: true });
+            return true;
+        } else return false
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
 module.exports.list_folder = list_folder;
 module.exports.delete_path = delete_path;
+module.exports.create_path = create_path;
