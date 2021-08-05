@@ -1,6 +1,7 @@
 const { debug } = require('console');
 var fs = require('fs');
 var path = require('path');
+var rimraf = require('rimraf');
 
 var list_folder = function(folder_path, recursive) {
     var folder_content = [];
@@ -25,4 +26,19 @@ var list_folder = function(folder_path, recursive) {
     return folder_content;
 }
 
+var delete_path = function(path){
+    try {
+        if(fs.lstatSync(path).isDirectory()){
+            rimraf.sync(path);
+        } else {
+            fs.unlinkSync(path)
+        }
+        return true;
+    } catch (error) {
+        console.log(error)
+        return false;
+    }
+}
+
 module.exports.list_folder = list_folder;
+module.exports.delete_path = delete_path;

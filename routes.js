@@ -2,6 +2,7 @@
 
 var service = require('./server');
 var search = require('./search');
+var files = require('./files');
 
 var url_paths = [
   '/',
@@ -19,6 +20,20 @@ var url_paths = [
 ]
 
 module.exports.start = function(server){
+
+  server.express.post('/api/delete', function (req, res) {
+    
+    var success = files.delete_path(process.cwd() + req.body.path);
+    if(success) {
+      console.log("> Deleted " + req.body.path);
+      server.update_file_structure();
+      res.status(200).end();
+    }
+    else {
+      console.log("> Error deleting " + req.body.path);
+      res.status(500).end();
+    }
+  });
 
   server.express.get('/api/search', function (req, res) {
     search.query(req, res, "api-search");
