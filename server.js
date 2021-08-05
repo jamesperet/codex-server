@@ -45,6 +45,10 @@ class Server {
       }
     }
   }
+
+  update_file_structure() {
+    this.file_structure = files.list_folder(process.cwd() + "/", true);
+  }
 }
 
 module.exports.start = function(new_cli, new_config){
@@ -84,7 +88,7 @@ module.exports.start = function(new_cli, new_config){
   app.use(bodyParser.json());
   app.use(cors());
   search.start(cli, app, server);
-  server.file_structure = files.list_folder(process.cwd() + "/", true);
+  server.update_file_structure();
 }
 
 var getPath = function(req){
@@ -292,6 +296,7 @@ var write_file = function(req, res){
           res.status(err.status).end();
       } else {
         cli.log("> Saved: " + path);
+        server.update_file_structure();
         res.status(200).end();
       }
     });
