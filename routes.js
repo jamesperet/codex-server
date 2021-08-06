@@ -22,17 +22,19 @@ var url_paths = [
 module.exports.start = function(server){
 
   server.express.post('/api/move', function (req, res) {
-    files.move_path(process.cwd() + req.body.path, process.cwd() + req.body.new_path)
+    var path = process.cwd() + req.body.path;
+    var new_path = process.cwd() + req.body.new_path;
+    files.move_path(path, new_path)
       .then(() => {
-        console.log("> Moved " + req.body.path + " => " + req.body.new_path);
+        console.log("> Moved " + path + " => " + new_path);
         server.update_file_structure();
         res.status(200).end();
       })
       .catch(err => {
-        console.log("> Error moving " + req.body.path + " => " + req.body.new_path);
+        console.log("> Error moving " + path + " => " + new_path);
         console.log(err);
         if(err.code == 'EEXIST') {
-          console.log("> Destination already exists " + req.body.new_path);
+          console.log("> Destination already exists " + new_path);
           res.status(405).end();
         } else {
           res.status(500).end();
