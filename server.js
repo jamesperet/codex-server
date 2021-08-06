@@ -185,8 +185,11 @@ var list_folder = function(req, res){
   if(path == "" || path == "undefined"){
     path = "./";
   }
+  path = path.replace("/./", "/");
   cli.log("> Listing folder: " + path);
-  res.json({ files: files.list_folder(path, false)});
+  var files_data = files.list_folder(path, false);
+  if(Array.isArray(files_data)) res.json({ files: files_data });
+  else res.status(404).end();
   // fs.readdir(path, function(err, files) {
   //   if(files != null){
   //     files.forEach(function(file) {
@@ -200,13 +203,10 @@ var list_folder = function(req, res){
 }
 
 var get_file = function(req, res){
-  
-  
   var path = getPath(req);
   var file_type = "";
   var parts;
   var extension;
-
   // Load file or look for index?
   if(isFile(req.params['file'])){
     // Set filetype
@@ -228,7 +228,13 @@ var get_file = function(req, res){
   if(file_type == "markdown"){
     fs.readFile(path, 'utf8', function (err,data) {
       if (err) {
-        return cli.log(err);
+        if(server.spa_mode && req.query['view'] != 'raw' && req.query['view'] != 'content'){
+          cli.log("> File not found: " + path + " - Sending index page " + printUser(req));
+          res.render('index', build_data(undefined));
+        } else {
+          cli.log(err);
+          res.status(404).end();
+        }
       } else {
         if(req.query['view'] == 'raw'){
           res.send(data);
@@ -259,15 +265,37 @@ var get_file = function(req, res){
       });
     }
   } else {
-    res.sendFile( process.cwd() + "/" + path, function (err) {
-      if (err) {
-        cli.log("> Error: " + path + " - file not found");
-        res.status(err.status).end();
+    if(req.query['view'] == 'exists'){
+      if(files.path_exists(process.cwd() + "/" + path)){
+        res.status(200).end();
+      } else {
+        res.status(404).end();
       }
-      else {
-        cli.log('> Sending ' + path + printUser(req));
+    } else if(server.spa_mode){
+      if(req.query['view'] == 'raw' || req.query['view'] == 'content'){
+        res.sendFile( process.cwd() + "/" + path, function (err) {
+          if (err) {
+            cli.log("> Error: " + path + " - file not found");
+            res.status(404).end();
+          }
+          else {
+            cli.log('> Sending ' + path + printUser(req));
+          }
+        });
+      } else {
+        res.render('index', build_data(undefined));
       }
-    });
+    } else {
+      res.sendFile( process.cwd() + "/" + path, function (err) {
+        if (err) {
+          cli.log("> Error: " + path + " - file not found");
+          res.status(404).end();
+        }
+        else {
+          cli.log('> Sending ' + path + printUser(req));
+        }
+      });
+    }
   }
 }
 

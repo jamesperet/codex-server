@@ -5,26 +5,47 @@ var rimraf = require('rimraf');
 const moveFile = require('move-file');
 
 var list_folder = function(folder_path, recursive) {
+    folder_path = folder_path.replace("/./", "/");
     var folder_content = [];
-    files = fs.readdirSync(folder_path);
+    try {
+        files = fs.readdirSync(folder_path);
+    } catch (error) { 
+        if(error.code != "ENOENT") console.log(error);
+        else console.log("> No content found in " + folder_path);
+        return false;
+    }
     files.forEach(function(file) {
         if(file != ".DS_Store" && file[0] != "."){
             var location = folder_path.replace(process.cwd(), "");
             var current_path = folder_path + file;
-            //console.log(current_path);
-            var is_folder = fs.lstatSync(current_path).isDirectory() 
+            var stat = fs.lstatSync(current_path);
             var data = {
                 name : file,
-                path : location.replace(".", "") + file + (is_folder ? "/" : ""),
+                path : location.replace(".", "") + file + (stat.isDirectory() ? "/" : ""),
                 folder : location,
                 ext : path.extname(file),
-                isFile : !is_folder,
-                folder_contents : is_folder && recursive ? list_folder(folder_path + file + "/", recursive) : undefined
+                isFile : !stat.isDirectory(),
+                size : stat.size,
+                mtime : stat.mtime,
+                ctime : stat.ctime,
+                folder_contents : stat.isDirectory() && recursive ? list_folder(folder_path + file + "/", recursive) : undefined
             }
             folder_content.push(data);
         }
     });
     return folder_content;
+}
+
+var path_exists = function(path){
+    try {
+        if (fs.existsSync(path)) {
+            return true;
+        }
+    } catch (error) { 
+        if(error.code != "ENOENT") console.log(error);
+        else console.log("> No content found in " + folder_path);
+        return false;
+    }
 }
 
 var delete_path = function(path){
@@ -57,6 +78,7 @@ var move_path = function(path, new_path){
     return moveFile(path, new_path);
 }
 
+module.exports.path_exists = path_exists;
 module.exports.list_folder = list_folder;
 module.exports.delete_path = delete_path;
 module.exports.create_path = create_path;
