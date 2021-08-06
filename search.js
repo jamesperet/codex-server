@@ -205,9 +205,12 @@ var updateFileIndex = function(path, save, stat){
       if(stat == undefined){
           stat = fs.statSync(filepath);
       }
-      var file = fs.readFileSync(filepath, 'utf8');
+      var file = "";
+      if (fs.existsSync(filepath)) {
+        file = fs.readFileSync(filepath, 'utf8');
+      }
     } catch (err) {
-      console.log(err);
+      if(err.code != "EISDIR") console.log(err);
     }
     if(doc != undefined){
       var file_index = createFileIndex(file, doc.path, doc.id, stat, doc.extension)

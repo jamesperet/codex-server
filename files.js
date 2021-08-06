@@ -2,6 +2,7 @@ const { debug } = require('console');
 var fs = require('fs');
 var path = require('path');
 var rimraf = require('rimraf');
+const moveFile = require('move-file');
 
 var list_folder = function(folder_path, recursive) {
     var folder_content = [];
@@ -17,7 +18,7 @@ var list_folder = function(folder_path, recursive) {
                 path : location.replace(".", "") + file + (is_folder ? "/" : ""),
                 folder : location,
                 ext : path.extname(file),
-                isFile : is_folder,
+                isFile : !is_folder,
                 folder_contents : is_folder && recursive ? list_folder(folder_path + file + "/", recursive) : undefined
             }
             folder_content.push(data);
@@ -52,6 +53,11 @@ var create_path = function(path){
     }
 }
 
+var move_path = function(path, new_path){
+    return moveFile(path, new_path);
+}
+
 module.exports.list_folder = list_folder;
 module.exports.delete_path = delete_path;
 module.exports.create_path = create_path;
+module.exports.move_path = move_path;

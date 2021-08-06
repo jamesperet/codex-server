@@ -21,6 +21,25 @@ var url_paths = [
 
 module.exports.start = function(server){
 
+  server.express.post('/api/move', function (req, res) {
+    files.move_path(process.cwd() + req.body.path, process.cwd() + req.body.new_path)
+      .then(() => {
+        console.log("> Moved " + req.body.path + " => " + req.body.new_path);
+        server.update_file_structure();
+        res.status(200).end();
+      })
+      .catch(err => {
+        console.log("> Error moving " + req.body.path + " => " + req.body.new_path);
+        console.log(err);
+        if(err.code == 'EEXIST') {
+          console.log("> Destination already exists " + req.body.new_path);
+          res.status(405).end();
+        } else {
+          res.status(500).end();
+        }
+      });
+  });
+
   server.express.post('/api/delete', function (req, res) {
     var success = files.delete_path(process.cwd() + req.body.path);
     if(success) {
