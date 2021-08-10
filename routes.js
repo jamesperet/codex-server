@@ -3,6 +3,8 @@
 var service = require('./server');
 var search = require('./search');
 var files = require('./files');
+const multer  = require('multer')
+const upload = multer({ dest: '.codex-data/uploads/' })
 
 var url_paths = [
   '/',
@@ -98,13 +100,44 @@ module.exports.start = function(server){
 
   // Write file content
   var write_action = function (req, res) {
-    service.write_file(req, res);
+    if(req.files != undefined) {
+      
+      var promises = []
+      req.files.forEach(f => {
+        console.log(`> Received uploaded file: ${server.getPath(req)}/${f.originalname} (${f.filename})`);
+        var path = process.cwd() + '/' + f.path;
+        var file = req.params['file'];
+        if(file != undefined && file != '') file += '/';
+        var new_path = process.cwd() + '/' + server.getPath(req) + file + f.originalname;
+        promises.push(files.move_path(path, new_path)
+        .then(() => {
+          console.log("> Moved " + path + " => " + new_path);
+        })
+        .catch(err => {
+          if(err.code == 'EEXIST') {
+            console.log("> Destination already exists " + new_path);
+          } else {
+            console.log("> Error moving " + path + " => " + new_path);
+            console.log(err);
+          }
+        }));
+      });
+      Promise.all(promises).then((values) => {
+        server.update_file_structure();
+        for (let i = 0; i < values.length; i++) {
+          if(values[i] == false) res.status(405).end();
+        }
+        res.status(200).end();
+      })
+    } else {
+      service.write_file(req, res);
+    }
   }
   for (var i = 0; i < url_paths.length; i++) {
     if(server.auth == undefined){
-      server.express.post(url_paths[i], (req, res) => write_action(req, res));
+      server.express.post(url_paths[i], upload.array('files'), (req, res) => write_action(req, res));
     } else {
-      server.express.post(url_paths[i], server.auth(), (req, res) => write_action(req, res));
+      server.express.post(url_paths[i], server.auth(), upload.array('files'),  (req, res) => write_action(req, res));
     }
     
   }

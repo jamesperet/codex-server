@@ -49,6 +49,42 @@ class Server {
   update_file_structure() {
     this.file_structure = files.list_folder(process.cwd() + "/", true);
   }
+
+  getPath(req){
+    var path = "";
+    if(req.params['folder_10'] != undefined){
+      path = path + req.params['folder_10'] + "/"
+    }
+    if(req.params['folder_9'] != undefined){
+      path = path + req.params['folder_9'] + "/"
+    }
+    if(req.params['folder_8'] != undefined){
+      path = path + req.params['folder_8'] + "/"
+    }
+    if(req.params['folder_7'] != undefined){
+      path = path + req.params['folder_7'] + "/"
+    }
+    if(req.params['folder_6'] != undefined){
+      path = path + req.params['folder_6'] + "/"
+    }
+    if(req.params['folder_5'] != undefined){
+      path = path + req.params['folder_5'] + "/"
+    }
+    if(req.params['folder_4'] != undefined){
+      path = path + req.params['folder_4'] + "/"
+    }
+    if(req.params['folder_3'] != undefined){
+      path = path + req.params['folder_3'] + "/"
+    }
+    if(req.params['folder_2'] != undefined){
+      path = path + req.params['folder_2'] + "/"
+    }
+    if(req.params['folder_1'] != undefined){
+      path = path + req.params['folder_1'] + "/"
+    }
+
+    return path;
+  }
 }
 
 module.exports.start = function(new_cli, new_config){
@@ -89,41 +125,6 @@ module.exports.start = function(new_cli, new_config){
   app.use(cors());
   search.start(cli, app, server);
   server.update_file_structure();
-}
-
-var getPath = function(req){
-  var path = "";
-  if(req.params['folder_10'] != undefined){
-    path = path + req.params['folder_10'] + "/"
-  }
-  if(req.params['folder_9'] != undefined){
-    path = path + req.params['folder_9'] + "/"
-  }
-  if(req.params['folder_8'] != undefined){
-    path = path + req.params['folder_8'] + "/"
-  }
-  if(req.params['folder_7'] != undefined){
-    path = path + req.params['folder_7'] + "/"
-  }
-  if(req.params['folder_6'] != undefined){
-    path = path + req.params['folder_6'] + "/"
-  }
-  if(req.params['folder_5'] != undefined){
-    path = path + req.params['folder_5'] + "/"
-  }
-  if(req.params['folder_4'] != undefined){
-    path = path + req.params['folder_4'] + "/"
-  }
-  if(req.params['folder_3'] != undefined){
-    path = path + req.params['folder_3'] + "/"
-  }
-  if(req.params['folder_2'] != undefined){
-    path = path + req.params['folder_2'] + "/"
-  }
-  if(req.params['folder_1'] != undefined){
-    path = path + req.params['folder_1'] + "/"
-  }
-  return path;
 }
 
 var getIndexFilePath = function(path, req, res){
@@ -173,7 +174,7 @@ var buildFilename = function(path, filename){
 }
 
 var list_folder = function(req, res){
-  var path = getPath(req);
+  var path = server.getPath(req);
   var file_type = "";
   var parts;
   var extension;
@@ -203,7 +204,7 @@ var list_folder = function(req, res){
 }
 
 var get_file = function(req, res){
-  var path = getPath(req);
+  var path = server.getPath(req);
   var file_type = "";
   var parts;
   var extension;
@@ -300,7 +301,7 @@ var get_file = function(req, res){
 }
 
 var write_file = function(req, res){
-  var path = getPath(req);
+  var path = server.getPath(req);
   var save_data;
   cli.log("Writing file: " + path);
   // Write file
