@@ -38,14 +38,32 @@ var list_folder = function(folder_path, recursive) {
 
 var path_exists = function(path){
     try {
-        if (fs.existsSync(path)) {
-            return true;
-        }
+        if (fs.existsSync(path)) return true;
+        else return false;
     } catch (error) { 
-        if(error.code != "ENOENT") console.log(error);
-        else console.log("> No content found in " + folder_path);
+        //if(error.code != "ENOENT") console.log(error);
+        //else console.log("> No content found in " + folder_path);
         return false;
     }
+}
+
+var getStat = function(path){
+    try {
+        return fs.lstatSync(path);
+    } catch (error) { 
+        if(error.code != "ENOENT") console.log(error);
+        else console.log("> No content found in " + path);
+        return undefined;
+    }
+}
+
+var isFile = function(path){
+    var stat = getStat(path);
+    if(stat != undefined){
+        if (!stat.isDirectory()) return true;
+        else return false;
+    }
+    else return false;
 }
 
 var delete_path = function(path){
@@ -78,8 +96,22 @@ var move_path = function(path, new_path){
     return moveFile(path, new_path);
 }
 
+var array_move = function(arr, old_index, new_index) {
+    if (new_index >= arr.length) {
+        var k = new_index - arr.length + 1;
+        while (k--) {
+            arr.push(undefined);
+        }
+    }
+    arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+    return arr; // for testing
+};
+
 module.exports.path_exists = path_exists;
+module.exports.getStat = getStat;
+module.exports.isFile = isFile;
 module.exports.list_folder = list_folder;
 module.exports.delete_path = delete_path;
 module.exports.create_path = create_path;
 module.exports.move_path = move_path;
+module.exports.array_move = array_move;

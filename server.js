@@ -6,9 +6,10 @@ var express = require('express')
 var app = express()
 var pathTool = require('path');
 var fs = require('fs');
-var bodyParser = require('body-parser');
 var _ = require('lodash');
-var cors = require('cors')
+var cors = require('cors');
+const chalk = require('chalk');
+
 
 var markdown = require('./markdown');
 var search = require('./search');
@@ -25,6 +26,7 @@ class Server {
     this.printUser = printUser;
     this.spa_mode = false;
     this.file_structure;
+    this.fileTools = files;
   }
 
   init_modules() {
@@ -32,7 +34,7 @@ class Server {
     this.modules = [];
     
     for (let i = 0; i < module_list.length; i++) {
-      cli.log('> Loading module ' + module_list[i].name);
+      cli.log('> Loading module ' + chalk.cyan(`\'${module_list[i].name}\'`));
       try {
         var Module = require(module_list[i].module);
         var module = new Module(this, module_list[i]);
@@ -85,6 +87,42 @@ class Server {
 
     return path;
   }
+
+  lookForPathInModules(path, req){
+    return new Promise((resolve, reject) => {
+      var promises = []
+      for (let i = 0; i < this.modules.length; i++) {
+        const module = this.modules[i];
+        if(typeof module.getFile === 'function'){
+          promises.push(module.getFile(path, req));
+        }
+      }
+      Promise.all(promises).then(values => {
+        for (let a = 0; a < values.length; a++) {
+          const data = values[a];
+          if(data != undefined) resolve(data);
+        }
+        resolve(undefined);
+      }).catch(error => {
+        console.log(error);
+        reject(error);
+      });
+    });
+  }
+
+  sendFile(req, res, file_path){
+    res.sendFile(file_path, function (err) {
+      if (err) {
+        console.log(err);
+        cli.log(`> ${chalk.red(`Error: \'${file_path}\' - file not found`)}`);
+        res.status(404).end();
+      }
+      else {
+        cli.log(`> Sending file ${chalk.green(`\'${file_path}\'`)}` + printUser(req));
+        res.status(200).end();
+      }
+    });
+  }
 }
 
 module.exports.start = function(new_cli, new_config){
@@ -98,6 +136,8 @@ module.exports.start = function(new_cli, new_config){
   } else {
     cli.log('> Starting codex server');
   }
+  app.use(express.json())
+  app.use(cors());
   server.init_modules();
   
   app.engine('html', require('ejs').renderFile);
@@ -106,23 +146,21 @@ module.exports.start = function(new_cli, new_config){
     var index_path = pathTool.join(config.get('views-path'), 'index.html');
     var index_exists = fs.existsSync(index_path);
     if(!index_exists) {
-      cli.log("> Error: index view not found: " + index_path);
-      cli.log("> Fix \'views-path\' in your configuration file to point to a valid theme views folder");
+      cli.log('>' + chalk.red(`Error: index view not found `) + chalk.green(`\'${index_path}\'`));
+      cli.log(`> Fix ${chalk.green(`\'views-path\'`)} in your configuration file to point to a valid theme views folder`);
       cli.log("> Shutting down");
       cli.execSync("exit");
     } else {
       app.set('views', config.get('views-path'));
-      cli.log('> Setting views from ' + config.get('views-path'));
+      cli.log('> Setting views from ' + chalk.green(`\'${config.get('views-path')}\'`));
     }
   } else {
-      cli.log("> Add \'views-path\' to your configuration file ");
+      cli.log(`> Add ${chalk.green(`\'views-path\'`)} option to your configuration file.`);
       cli.log("> Shutting down");
       cli.execSync("exit");
   }
   //app.use('/public', express.static(path.join(__dirname + '/node_modules')));
   //app.use(express.static('public'))
-  app.use(bodyParser.json());
-  app.use(cors());
   search.start(cli, app, server);
   server.update_file_structure();
 }
@@ -266,37 +304,25 @@ var get_file = function(req, res){
       });
     }
   } else {
-    if(req.query['view'] == 'exists'){
-      if(files.path_exists(process.cwd() + "/" + path)){
-        res.status(200).end();
-      } else {
-        res.status(404).end();
-      }
-    } else if(server.spa_mode){
-      if(req.query['view'] == 'raw' || req.query['view'] == 'content'){
-        res.sendFile( process.cwd() + "/" + path, function (err) {
-          if (err) {
-            cli.log("> Error: " + path + " - file not found");
-            res.status(404).end();
-          }
-          else {
-            cli.log('> Sending ' + path + printUser(req));
-          }
-        });
-      } else {
-        res.render('index', build_data(undefined));
-      }
-    } else {
-      res.sendFile( process.cwd() + "/" + path, function (err) {
-        if (err) {
-          cli.log("> Error: " + path + " - file not found");
+    server.lookForPathInModules(path, req).then((external_file) => {
+      if(external_file != undefined) {
+        server.sendFile(req, res, external_file);
+      } else if(req.query['view'] == 'exists'){
+        if(files.path_exists(process.cwd() + "/" + path)){
+          res.status(200).end();
+        } else {
           res.status(404).end();
         }
-        else {
-          cli.log('> Sending ' + path + printUser(req));
+      } else if(server.spa_mode){
+        if(req.query['view'] == 'raw' || req.query['view'] == 'content'){
+          server.sendFile(req, res, process.cwd() + "/" + path);
+        } else {
+          res.render('index', build_data(undefined));
         }
-      });
-    }
+      } else {
+        server.sendFile(req, res, process.cwd() + "/" + path);
+      }
+    });
   }
 }
 
