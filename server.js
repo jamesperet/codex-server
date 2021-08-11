@@ -384,7 +384,9 @@ var printUser = function(req)
   {
     //cli.log(req.oidc.isAuthenticated() ? '> User is logged in' : '> User is logged out');
     //cli.log(req.oidc.user);
-    u = req.oidc.user.nickname;
+    if(req.oidc != undefined){
+      if(req.oidc.isAuthenticated()) u = req.oidc.user.nickname;
+    }
   }
   if(u == undefined) return "";
     else return " to " + u;

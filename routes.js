@@ -82,6 +82,22 @@ module.exports.start = function(server){
     search.query(req, res, "search");
   });
 
+  // Get User
+  if(server.auth == undefined){
+    server.express.get('/api/user', function (req, res) {
+      res.json({ user : undefined }).end();
+    });
+  } else {
+    server.express.get('/api/user', server.auth(), function (req, res) {
+      var u = undefined;
+      if(req.oidc != undefined){
+        if(req.oidc.isAuthenticated()) u = req.oidc.user;
+      }
+      //console.log(u);
+      res.json({ user : u }).end();
+    });
+  }
+
   // Get file
   var get_action = function (req, res) {
     if(req.query.list == "true"){
@@ -139,6 +155,5 @@ module.exports.start = function(server){
     } else {
       server.express.post(url_paths[i], server.auth(), upload.array('files'),  (req, res) => write_action(req, res));
     }
-    
   }
 }
