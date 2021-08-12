@@ -136,6 +136,11 @@ module.exports.start = function(new_cli, new_config){
   } else {
     cli.log('> Starting codex server');
   }
+  var requestDelay = config.get('request-delay');
+  if(requestDelay != undefined && requestDelay != 0 && !isNaN(requestDelay)){
+    cli.log(`> Setting request delay to ${chalk.cyan(requestDelay)}`);
+    app.use(function(req,res,next){setTimeout(next,requestDelay)});
+  }
   app.use(express.json())
   app.use(cors());
   server.init_modules();
