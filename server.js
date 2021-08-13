@@ -84,7 +84,6 @@ class Server {
     if(req.params['folder_1'] != undefined){
       path = path + req.params['folder_1'] + "/"
     }
-
     return path;
   }
 

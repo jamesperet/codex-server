@@ -24,8 +24,8 @@ var url_paths = [
 module.exports.start = function(server){
 
   server.express.post('/api/move', function (req, res) {
-    var path = process.cwd() + req.body.path;
-    var new_path = process.cwd() + req.body.new_path;
+    var path = process.cwd() + req.body.path.replace(/%20/g, ' ');
+    var new_path = process.cwd() + req.body.new_path.replace(/%20/g, ' ');
     files.move_path(path, new_path)
       .then(() => {
         console.log("> Moved " + path + " => " + new_path);
@@ -45,7 +45,7 @@ module.exports.start = function(server){
   });
 
   server.express.post('/api/delete', function (req, res) {
-    var success = files.delete_path(process.cwd() + req.body.path);
+    var success = files.delete_path(process.cwd() + req.body.path.replace(/%20/g, ' '));
     if(success) {
       console.log("> Deleted " + req.body.path);
       server.update_file_structure();
@@ -58,7 +58,7 @@ module.exports.start = function(server){
   });
 
   server.express.post('/api/create_folder', function (req, res) {
-    var success = files.create_path(process.cwd() + req.body.path);
+    var success = files.create_path(process.cwd() + req.body.path.replace(/%20/g, ' '));
     if(success) {
       console.log("> Create new folder " + req.body.path);
       server.update_file_structure();
