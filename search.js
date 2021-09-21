@@ -183,8 +183,8 @@ var startServer = function(){
     }
   });
   routes.start(server);
-  app.listen(3000, function () {
-    cli.log('> listening on port 3000');
+  app.listen(3300, function () {
+    cli.log('> listening on port 3300');
   });
 }
 
