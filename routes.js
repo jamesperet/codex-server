@@ -82,6 +82,12 @@ module.exports.start = function(server){
     search.query(req, res, "search");
   });
 
+  server.express.get('/api/about', function (req, res) {
+    var about = server.config["server-title"];
+    console.log(about);
+    res.status(200).json({ about: about });
+  });
+
   // Get User
   if(server.auth == undefined){
     server.express.get('/api/user', function (req, res) {
